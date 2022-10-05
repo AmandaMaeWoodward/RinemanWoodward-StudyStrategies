@@ -1,0 +1,112 @@
+---
+title: "Study Strategy Analyses"
+author: "Rachel Rineman, Amanda Mae Woodward"
+date: "9/29/2022"
+output: html_document
+---
+
+```{r library}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+StudyDat <- read.csv("~/Desktop/Metacognition Study/StudyStrategyCodes.csv")
+```
+*Right now, I have all of these seperate, I know they all need to go together, but I wasn't sure how to combine everything, what is my best option for that? Or, should they be separate?
+Question 1: Do students in this class use effective study strategies? Hypothesis: We hypothesize that students will not report using effective strategies at the beginning of the course
+```{r data cleaning, seperated study strategy data MC1 prior strategy} 
+StudyDatSepMC1PS<- separate(StudyDat,MC1_PriorStrategyDunlosky, into= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), sep= ",")
+```
+
+```{r}
+StudyDatSepMC1FS<- separate(StudyDat,MC1_FutureStrategyDunlosky, into= c("MC1FS1", "MC1FS2", "MC1FS3", "MC1FS4", "MC1FS5", "MC1FS6"), sep= ",")
+```
+
+```{r}
+StudyDatSepMC2US<- separate(StudyDat,MC2_UsedStrategyDunlosky, into= c("MC2US1", "MC2US2", "MC2US3", "MC2US4", "MC2US5", "MC2US6"), sep= ",")
+```
+
+```{r}
+StudyDatSepMC2FS<- separate(StudyDat,MC2_FutureStrategyDunlosky, into= c("MC2FS1", "MC2FS2", "MC2FS3", "MC2FS4", "MC2FS5", "MC2FS6"), sep= ",")
+```
+
+```{r}
+StudyDatSepMC3US<- separate(StudyDat,MC3_UsedDunloskyStrategy, into= c("MC3US1", "MC3US2", "MC3US3", "MC3US4", "MC3US5", "MC3US6"), sep= ",")
+```
+
+```{r}
+StudyDatSepMC3FS<- separate(StudyDat,MC3_FutureDunloskyStrategy, into= c("MC3FS1", "MC3FS2", "MC3FS3", "MC3FS4", "MC3FS5", "MC3FS6"), sep= ",")
+```
+
+```{r }
+longdatMC1PS<- pivot_longer(StudyDatSepMC1, cols= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC1FS<- pivot_longer(StudyDatSepMC1FS, cols= c("MC1FS1", "MC1FS2", "MC1FS3", "MC1FS4", "MC1FS5", "MC1FS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC2US<- pivot_longer(StudyDatSepMC2US, cols= c("MC2US1", "MC2US2", "MC2US3", "MC2US4", "MC2US5", "MC2US6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC2FS<- pivot_longer(StudyDatSepMC2FS, cols= c("MC2FS1", "MC2FS2", "MC2FS3", "MC2FS4", "MC2FS5", "MC2FS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC3US<- pivot_longer(StudyDatSepMC3US, cols= c("MC3US1", "MC3US2", "MC3US3", "MC3US4", "MC3US5", "MC3US6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC3FS<- pivot_longer(StudyDatSepMC3FS, cols= c("MC3FS1", "MC3FS2", "MC3FS3", "MC3FS4", "MC3FS5", "MC3FS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+
+
+```{r datacleaning}
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Distributed", "High", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "TestPractice", "High", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Interleaved", "High", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Interrogation", "Moderate", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "SelfExplain", "Moderate", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "ReRead", "Low", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Highlight", "Low", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Summary", "Low", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Mnemonic", "Low", longdat$MC1_PriorStrategyUtility)
+longdat$MC1_PriorStrategyUtility<- ifelse(longdat$Strategies == "Imagery", "Low", longdat$MC1_PriorStrategyUtility)
+```
+
+```{r}
+
+```
+
+Question 2: Will students use more effective strategies at the end of the course compared to at the beginning? 
+We hypothesize that students will use more effective strategies as the semester progresses, compared to the beginning of the semester. 
+```{r}
+
+```
+
+Question 3: Does the use of effective strategies correlate with overall class performance?
+We hypothesize that students with effective study strategies will earn higher grades in the class
+We hypothesize that students with effective strategies will earn higher grades on exams than those who use ineffective strategies
+
+```{r}
+cor(longdat$MC1_PriorStrategyUtility, longdat$Final.Grade)
+#It wants it to be numeric for correlation. I remember you writing on the board 1, .5, and 0 I think to add values to high, mod, low utility. Would that be another if else? 
+```
+
+Question 4: Do students’ expected grades correlate with the actual grades that they earned? 
+We hypothesize that students expected grades will correlate with their actual grades 
+We hypothesize that there will be a greater difference (expected - actual) for those with poorer study strategies than those with more effective strategies 
+```{r}
+cor(StudyDat$MC2_AnticipatedGrade, StudyDat$MC2_ActualGrade)
+StudyDat$MC2_AnticipatedGrade<- as.numeric(StudyDat$MC2_AnticipatedGrade)
+StudyDat$MC2_ActualGrade<- as.numeric(StudyDat$MC2_ActualGrade)
+#I tried switching to numeric and it gave me an NA
+```
+
+Question 5: Do students find reflecting on metacognition useful? 
+We hypothesize that students will find reflecting on metacognition useful more often than chance
+

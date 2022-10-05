@@ -1,0 +1,38 @@
+---
+title: "Untitled"
+author: "Amanda Mae Woodward"
+date: "2022-10-05"
+output: html_document
+---
+
+```{r futureSplitMC1}
+MC1_FutureStudyDat<- separate(StudyDat,MC1_FutureStrategyDunlosky, into= c("MC1FS1", "MC1FS2", "MC1FS3", "MC1FS4", "MC1FS5", "MC1FS6"), sep= ",")
+```
+
+```{r futureSplitMC2}
+MC2_FutureStudyDat<- separate(StudyDat,MC2_UsedStrategyDunlosky, into= c("MC2US1", "MC2US2", "MC2US3", "MC2US4", "MC2US5", "MC2US6"), sep= ",")
+```
+
+```{r futureSplitMC3}
+MC3_FutureStudyDat<- separate(StudyDat,MC2_FutureStrategyDunlosky, into= c("MC2FS1", "MC2FFS2", "MC2FFS3", "MC2FFS4", "MC2FFS5", "MC2FFS6"), sep= ",")
+```
+
+```{r usedSplitMC3}
+MC3_UsedStudyDat<- separate(StudyDat,MC3_UsedDunloskyStrategy, into= c("MC3US1", "MC3US2", "MC3US3", "MC3US4", "MC3US5", "MC3US6"), sep= ",")
+```
+
+```{r}
+StudyDatSep<- separate(StudyDat,MC3_FutureDunloskyStrategy, into= c("MC3FS1", "MC3FS2", "MC3FS3", "MC3FS4", "MC3FS5", "MC3FS6"), sep= ",")
+```
+
+```{r }
+longdat<- pivot_longer(StudyDatSepMC1, cols= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC2<- pivot_longer(StudyDatSepMC2, cols= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+```{r}
+longdatMC3<- pivot_longer(StudyDatSepMC3, cols= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), names_to= "orderMention", values_to= "Strategies")
+```
