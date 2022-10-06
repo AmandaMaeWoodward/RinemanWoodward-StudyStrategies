@@ -13,12 +13,10 @@ library(lme4)
 ```
 
 ```{r}
-StudyDat <- read_csv("StudyStrategyCodes.csv")
+StudyDat  <- read_csv("Study Strategies Fixed.csv")
 colnames(StudyDat)[1]<- "SubjectNumber"
 colnames(StudyDat)[2]<- "ClassYear"
 colnames(StudyDat)[4]<- "RaceEthnicity"
-
-
 ```
 
 # Question 1: Do students in this class use effective study strategies? 
@@ -59,10 +57,14 @@ cro(PriorStudyLong$Strategies)
 library(viridis)
 PriorStudyLong$MC1_PriorStrategyUtility<- as.factor(PriorStudyLong$MC1_PriorStrategyUtility)
 levels(PriorStudyLong$MC1_PriorStrategyUtility)
+
+class(PriorStudyLong$MC1_PriorStrategyUtility)
+PriorStudyLong$MC1_PriorStrategyUtility<-ordered(PriorStudyLong$MC1_PriorStrategyUtility, levels= c("Low", "Moderate", "High"))
 PsGraph<- cbind.data.frame(PriorStudyLong$Strategies, PriorStudyLong$MC1_PriorStrategyUtility)
 PsGraph<- na.omit(PsGraph)
 colnames(PsGraph)<- c("Strategies", "MC1_PriorStrategyUtility")
-ggplot(PsGraph, aes(Strategies, fill=MC1_PriorStrategyUtility))+ geom_bar() + theme_classic()+ scale_fill_viridis(option="D", discrete=TRUE)
+ggplot(PsGraph, aes(Strategies, fill=MC1_PriorStrategyUtility))+ geom_bar() + theme_classic()+ scale_fill_viridis(option="D", discrete=TRUE)+facet_wrap(~MC1_PriorStrategyUtility)+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
 ```
 
 #### Descriptive Statistics About Study Strategy Utilities  
@@ -70,6 +72,8 @@ ggplot(PsGraph, aes(Strategies, fill=MC1_PriorStrategyUtility))+ geom_bar() + th
 cro(PriorStudyLong$MC1_PriorStrategyUtility)
 ggplot(PsGraph, aes(MC1_PriorStrategyUtility))+geom_bar()+ theme_classic()
 ```
+#of the 150 student responses (some students provided more than 1), 74 mentioned high utility 64 mentioned low, 10 mentioned moderate
+
 #### Analysis: Generalized Linear Model Logistic Regression (Preliminary)
 Dependent Variable: Utility (1= high utility; 0 = not high utility)
 Independent Variable: Demographic Variables
@@ -115,13 +119,23 @@ for (j in 5:10){
 }
 
 PriorStudyDat$OverallUtility<- ifelse(is.na(PriorStudyDat$OverallUtility)==TRUE,0, PriorStudyDat$OverallUtility)
+PriorStudyDat$ClassYear<- as.factor(PriorStudyDat$ClassYear)
+levels(PriorStudyDat$ClassYear)[3]<- "First Year Student/Freshman" 
+levels(PriorStudyDat$ClassYear)[4]<- "Second Year Student/Sophomore"
 
+PriorStudyDat$Gender<-as.factor(PriorStudyDat$Gender)
+levels(PriorStudyDat$Gender)[2]<- "Cisgender Woman" 
+levels(PriorStudyDat$Gender)[4]<-"Do Not Wish to Disclose"
+levels(PriorStudyDat$Gender)
+
+PriorStudyDat$RaceEthnicity<- as.factor(PriorStudyDat$RaceEthnicity)
+levels(PriorStudyDat$RaceEthnicity)
 
 glm1<-glm(OverallUtility~ClassYear+RaceEthnicity+Gender, data=PriorStudyDat)
 summary(glm1)
 glm2<-glm(OverallUtility~ClassYear, data=PriorStudyDat)
 summary(glm2)
-#Class years need to be modified
+
 ```
 
 ### Analysis: Binomial Test 
@@ -129,11 +143,122 @@ summary(glm2)
 summary(as.factor(PriorStudyDat$OverallUtility))
 binom.test(53, (53+13))
 ```
+**Note:** Students are using highly effective strategies more often than chance before the course
+
+```{r explorePrior}
+PriorStudyDat$lowImpact<- NA
+
+for (j in 5:10){
+  for(i in 1:nrow(PriorStudyDat)){
+    if(PriorStudyDat[i,j]== "Highlight"){
+      PriorStudyDat$lowImpact[i]<-1
+    }
+    if(PriorStudyDat[i,j]=="Imagery"){
+      PriorStudyDat$lowImpact[i]<-1
+    }
+    if(PriorStudyDat[i,j]=="Mnemonic"){
+       PriorStudyDat$lowImpact[i]<-1
+    }
+     if(PriorStudyDat[i,j]=="Reread"){
+       PriorStudyDat$lowImpact[i]<-1
+     }
+     if(PriorStudyDat[i,j]=="Summary"){
+       PriorStudyDat$lowImpact[i]<-1
+    }
+    else{print("whoops!")}
+  }
+}
+
+PriorStudyDat$lowImpact<- ifelse(is.na(PriorStudyDat$lowImpact)== TRUE, "none",PriorStudyDat$lowImpact)
+
+
+summary(as.factor(PriorStudyDat$lowImpact))
+
+binom.test(44,66)
+
+# students are also statistically choosing low utility
+
+PriorStudyDat$JustHighImpact<- ifelse(PriorStudyDat$OverallUtility==1 & PriorStudyDat$lowImpact !=1, 1, 0)
+summary(as.factor(PriorStudyDat$JustHighImpact))
+binom.test(14,66)
+
+PriorStudyDat$JustLowImpact<- ifelse(PriorStudyDat$OverallUtility!=1 & PriorStudyDat$lowImpact==1, 1, 0)
+summary(as.factor(PriorStudyDat$JustLowImpact))
+binom.test(6,66)
+```
+
+#overall take away: more students than chance use high impact (and low impact strategies) at start of semester. Students seem to use a mix of both- not rely on one or the other 
 
 Question 2: Will students use more effective strategies at the end of the course compared to at the beginning? 
 We hypothesize that students will use more effective strategies as the semester progresses, compared to the beginning of the semester. 
+### Data Clean 
+
+#### MC 2
 ```{r}
-#Rachel Try this 
+colnames(StudyDat)
+MC2StudyDat<- separate(StudyDat,MC2_UsedStrategyDunlosky, into= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), sep= ", ")
+
+MC2StudyDat$PS1<-as.factor(MC2StudyDat$PS1)
+levels(MC2StudyDat$PS1)[6]<- "Reread"
+
+MC2StudyDat$PS2<-as.factor(MC2StudyDat$PS2)
+levels(MC2StudyDat$PS2)<- c("Summary", "Distributed", "Distributed", "Highlight","Imagery","Interleaved","Interrogation","Mnemonic","Reread","Reread","SelfExplain", "Summary", "TestPractice")
+MC2StudyDat$PS3<-as.factor(MC2StudyDat$PS3)
+levels(MC2StudyDat$PS3)[4]<- "Reread"
+MC2StudyDat$PS4<-as.factor(MC2StudyDat$PS4)
+levels(MC2StudyDat$PS4)[2]<-"Reread" 
+MC2StudyDat$PS5<-as.factor(MC2StudyDat$PS5)
+levels(MC2StudyDat$PS5)
+MC2StudyDat$PS6<-as.factor(MC2StudyDat$PS6)
+levels(MC2StudyDat$PS6)
+```
+
+```{r}
+MC2_CurrentLongDat<- pivot_longer(MC2StudyDat,cols= c("PS1", "PS2", "PS3", "PS4", "PS5", "PS6"), names_to= "orderMention", values_to= "Strategies")
+```
+
+#Longdat helps with graphs
+```{r Priorstudydatacleaning}
+colnames(MC2_CurrentLongDat)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Distributed", "High", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "TestPractice", "High", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Interleaved", "High", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Interrogation", "Moderate", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "SelfExplain", "Moderate", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Reread", "Low", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Highlight", "Low", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Summary", "Low", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Mnemonic", "Low", MC2_CurrentLongDat$MC2_UsedUtility)
+MC2_CurrentLongDat$MC2_UsedUtility<- ifelse(MC2_CurrentLongDat$Strategies == "Imagery", "Low", MC2_CurrentLongDat$MC2_UsedUtility)
+cbind.data.frame(MC2_CurrentLongDat$Strategies, MC2_CurrentLongDat$MC2_UsedUtility)
+```
+
+```{r}
+colnames(MC2_CurrentLongDat)
+MC2Subset<- cbind.data.frame(MC2_CurrentLongDat$SubjectNumber, MC2_CurrentLongDat$orderMention, MC2_CurrentLongDat$Strategies, MC2_CurrentLongDat$MC2_UsedUtility) 
+colnames(MC2Subset)<- c("SubjectNumber", "Order", "Strategies", "MC2_UsedUtility")
+
+MC2SubsetWide<- pivot_wider(MC2Subset, names_from = "Order", values_from= "Strategies")
+```
+
+
+
+### MC 3 
+```{r}
+StudyDat$MC3_UsedDunloskyStrategy
+MC3StudyDat<- separate(StudyDat,MC3_UsedDunloskyStrategy, into= c("PS1", "PS2", "PS3", "PS4", "PS5"), sep= ", ")
+
+MC3StudyDat$PS1<- as.factor(MC3StudyDat$PS1)
+levels(MC3StudyDat$PS1)[7]<- "Reread" 
+levels(MC3StudyDat$PS1)[11]<- "TestPractice" 
+MC3StudyDat$PS2<- as.factor(MC3StudyDat$PS2)
+levels(MC3StudyDat$PS2)<- c("Distributed", "Highlight", "Highlight", "Imagery", "Interrogation", "Mnemonic", "Reread", "SelfExplain", "Summary", "TestPractice")
+MC3StudyDat$PS3<- as.factor(MC3StudyDat$PS3)
+levels(MC3StudyDat$PS3)[3]<- "Reread"
+MC3StudyDat$PS4<- as.factor(MC3StudyDat$PS4)
+levels(MC3StudyDat$PS4)
+MC3StudyDat$PS5<- as.factor(MC3StudyDat$PS5)
+levels(MC3StudyDat$PS5)
 ```
 
 Question 3: Does the use of effective strategies correlate with overall class performance?
@@ -141,7 +266,7 @@ We hypothesize that students with effective study strategies will earn higher gr
 We hypothesize that students with effective strategies will earn higher grades on exams than those who use ineffective strategies
 
 ```{r}
-#cor(longdat$MC1_PriorStrategyUtility, longdat$Final.Grade)
+#cor(longdat$MC2_UsedUtility, longdat$Final.Grade)
 #longdat$MC1_PriorStrategyUtility<- as.numeric(longdat$MC1_PriorStrategyUtility)
 # need to use ordinal data correlation (spearman's) 
 ```
